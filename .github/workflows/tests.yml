@@ -36,13 +36,33 @@ jobs:
 
       - name: Start application
         run: |
-          java -jar bin/app.jar &
-          sleep 15   # ожидание старта приложения
+          java -jar bin/app.jar > app.log 2>&1 &
+          echo "Waiting for application to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/ > /dev/null; then
+              echo "Application is up!"
+              break
+            fi
+            echo "Attempt $i: not ready yet..."
+            sleep 2
+          done
 
       - name: Run tests
         run: ./mvnw test
 
+      - name: Show test failures (if any)
+        if: failure()
+        run: |
+          echo "=== Test Reports ==="
+          for f in target/surefire-reports/*.txt; do
+            echo "--- $f ---"
+            cat "$f"
+          done
+          echo "=== Application Log (last 50 lines) ==="
+          tail -50 app.log
+
       - name: Generate Allure report
+        if: always()
         run: ./mvnw allure:report
 
       - name: Deploy report to GitHub Pages
