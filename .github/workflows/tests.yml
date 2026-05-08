@@ -82,13 +82,18 @@ jobs:
           if [ -f target/site/allure-maven-plugin/index.html ]; then
             echo "Report generated successfully."
           else
-            echo "Report generation failed. Check logs."
+            echo "Report generation failed!"
             exit 1
           fi
 
       - name: Deploy report to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/site/allure-maven-plugin
-          destination_dir: .
+        run: |
+          cd target/site/allure-maven-plugin
+          git init
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git checkout -b gh-pages
+          git add .
+          git commit -m "Update Allure report"
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push -f origin gh-pages
