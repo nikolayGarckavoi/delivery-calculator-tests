@@ -6,3 +6,5 @@ target/
 *.tmp
 .idea/
 *.iml
+
+!bin/app.jar
